@@ -205,12 +205,12 @@ void LoadSimulationCluster::drawCurrentGear(const Bounds &bounds) {
     const Bounds body = insetBounds.verticalSplit(0.0f, 0.9f);
 
     drawFrame(bounds, 1.0f, m_app->getForegroundColor(), m_app->getBackgroundColor());
-    drawCenteredText("Gear", title.inset(30.0f), 24.0f);
-    Engine *engine = m_simulator->getEngine();
-    std::stringstream ss1;
-    
-    ss1 << (engine->getGearMode() ? "Arcade" : "Manual");
-    drawCenteredText(ss1.str(), title.inset(10.0f), 24.0f);
+    drawCenteredText("Gear", title.inset(30.0f), 24.0f); 
+    Engine *engine = m_simulator->getEngine(); 
+    std::stringstream ss1; 
+     
+    ss1 << (engine->getGearMode() ? "Arcade" : "Manual"); 
+    drawCenteredText(ss1.str(), title.inset(10.0f), 24.0f); 
 
     const int gear = (getTransmission() != nullptr)
         ? getTransmission()->getGear()

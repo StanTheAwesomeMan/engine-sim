@@ -36,6 +36,7 @@ float nmap(float x, float in_min, float in_max, float out_min, float out_max) {
 }
 
 bool loaded = false;
+bool shifted = false;
 
 ysVector green, yellow, orange, red, bg;
 ysVector mixedcolor;
@@ -884,21 +885,57 @@ void EngineSimApplication::processEngineInput() {
         m_infoCluster->setLogMessage(msg);
     }
 
-    if (m_engine.ProcessKeyDown(ysKey::Code::Up)) {
-        m_simulator.getTransmission()->changeGear(m_simulator.getTransmission()->getGear() + 1);
+    if (m_engine.ProcessKeyDown(ysKey::Code::J)) {
+        m_iceEngine->toggleGearMode();
 
-        m_infoCluster->setLogMessage(
-            "UPSHIFTED TO " + std::to_string(m_simulator.getTransmission()->getGear() + 1));
+        const std::string msg = m_iceEngine->getGearMode()
+            ? "ARCADE ENABLED"
+            : "ARCADE DISABLED";
+        m_infoCluster->setLogMessage(msg);
     }
-    else if (m_engine.ProcessKeyDown(ysKey::Code::Down)) {
-        m_simulator.getTransmission()->changeGear(m_simulator.getTransmission()->getGear() - 1);
 
-        if (m_simulator.getTransmission()->getGear() != -1) {
+    if (m_iceEngine->getGearMode()) {
+        if (m_engine.ProcessKeyDown(ysKey::Code::Up) && m_simulator.getTransmission()->getGear() == -1) {
+            m_simulator.getTransmission()->changeGear(0);
+
             m_infoCluster->setLogMessage(
-                "DOWNSHIFTED TO " + std::to_string(m_simulator.getTransmission()->getGear() + 1));
+                "SHIFTED TO DRIVE");
         }
-        else {
-            m_infoCluster->setLogMessage("SHIFTED TO NEUTRAL");
+        if (m_engine.ProcessKeyDown(ysKey::Code::Down)) {
+            m_simulator.getTransmission()->changeGear(-1);
+
+            m_infoCluster->setLogMessage(
+                "SHIFTED TO NEUTRAL");
+        }
+        if (m_iceEngine->getRpm() > units::toRpm(m_iceEngine->getRedline()) * 0.8 && m_simulator.getTransmission()->getGear() != -1 && !shifted) {
+            shifted = true;
+            m_speedSetting = 0;
+            m_simulator.getTransmission()->changeGear(m_simulator.getTransmission()->getGear() + 1);
+        } else if (m_iceEngine->getRpm() < units::toRpm(m_iceEngine->getRedline()) * 0.4 && m_simulator.getTransmission()->getGear() > 0 && !shifted) {
+            shifted = true;
+            m_speedSetting = 0.1;
+            m_simulator.getTransmission()->changeGear(m_simulator.getTransmission()->getGear() - 1);
+        }
+        if (shifted && m_iceEngine->getRpm() < units::toRpm(m_iceEngine->getRedline()) * 0.8 && m_iceEngine->getRpm() > units::toRpm(m_iceEngine->getRedline()) * 0.4) {
+            shifted = false;
+        }
+    } else {
+        if (m_engine.ProcessKeyDown(ysKey::Code::Up)) {
+            m_simulator.getTransmission()->changeGear(m_simulator.getTransmission()->getGear() + 1);
+
+            m_infoCluster->setLogMessage(
+                "UPSHIFTED TO " + std::to_string(m_simulator.getTransmission()->getGear() + 1));
+        }
+        else if (m_engine.ProcessKeyDown(ysKey::Code::Down)) {
+            m_simulator.getTransmission()->changeGear(m_simulator.getTransmission()->getGear() - 1);
+
+            if (m_simulator.getTransmission()->getGear() != -1) {
+                m_infoCluster->setLogMessage(
+                    "DOWNSHIFTED TO " + std::to_string(m_simulator.getTransmission()->getGear() + 1));
+            }
+            else {
+                m_infoCluster->setLogMessage("SHIFTED TO NEUTRAL");
+            }
         }
     }
 

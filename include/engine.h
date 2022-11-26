@@ -76,6 +76,9 @@ class Engine : public Part {
         inline double getRedline() const { return m_redline; }
         inline double getRpmLift() { return setrpmlift; }
         inline void setRpmLift(double i) { setrpmlift = i; }
+        inline bool getGearMode() const { return arcade; }
+
+        void toggleGearMode() { arcade = !arcade; }
 
         int getCylinderBankCount() const { return m_cylinderBankCount; }
         int getCylinderCount() const { return m_cylinderCount; }
@@ -139,6 +142,8 @@ class Engine : public Part {
         double m_displacement;
 
         double setrpmlift;
+
+        bool arcade = true;
 };
 
 #endif /* ATG_ENGINE_SIM_ENGINE_H */

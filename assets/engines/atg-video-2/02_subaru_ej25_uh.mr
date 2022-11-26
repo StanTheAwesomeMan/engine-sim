@@ -29,10 +29,6 @@ private node wires {
     output wire6: ignition_wire();
     output wire7: ignition_wire();
     output wire8: ignition_wire();
-    output wire9: ignition_wire();
-    output wire10: ignition_wire();
-    output wire11: ignition_wire();
-    output wire12: ignition_wire();
 }
 
 public node custom_lobe {
@@ -225,39 +221,31 @@ private node ej25_camshaft {
 
     _exhaust_cam_0
         .add_lobe(rot360 - exhaust_lobe_center + aoffset)
-        .add_lobe(rot360 - exhaust_lobe_center + aoffset + rot120)
-        .add_lobe(rot360 - exhaust_lobe_center + aoffset + rot240)
+        .add_lobe(rot360 - exhaust_lobe_center + aoffset + rot180)
     _intake_cam_0
         .add_lobe(rot360 + intake_lobe_center + aoffset)
-        .add_lobe(rot360 + intake_lobe_center + aoffset + rot120)
-        .add_lobe(rot360 + intake_lobe_center + aoffset + rot240)
+        .add_lobe(rot360 + intake_lobe_center + aoffset + rot180)
 
     _exhaust_cam_1
         .add_lobe(rot360 - exhaust_lobe_center + rot180 + aoffset + boffset)
-        .add_lobe(rot360 - exhaust_lobe_center + rot180 + aoffset + boffset + rot120)
-        .add_lobe(rot360 - exhaust_lobe_center + rot180 + aoffset + boffset + rot240)
+        .add_lobe(rot360 - exhaust_lobe_center + rot180 + aoffset + boffset + rot180)
     _intake_cam_1
         .add_lobe(rot360 + intake_lobe_center + rot180 + aoffset + boffset)
-        .add_lobe(rot360 + intake_lobe_center + rot180 + aoffset + boffset + rot120)
-        .add_lobe(rot360 + intake_lobe_center + rot180 + aoffset + boffset + rot240)
+        .add_lobe(rot360 + intake_lobe_center + rot180 + aoffset + boffset + rot180)
     
     _exhaust_cam_2
         .add_lobe(rot360 - exhaust_lobe_center + rot360 + aoffset + boffset)
-        .add_lobe(rot360 - exhaust_lobe_center + rot360 + aoffset + boffset + rot120)
-        .add_lobe(rot360 - exhaust_lobe_center + rot360 + aoffset + boffset + rot240)
+        .add_lobe(rot360 - exhaust_lobe_center + rot360 + aoffset + boffset + rot180)
     _intake_cam_2
         .add_lobe(rot360 + intake_lobe_center + rot360 + aoffset + boffset)
-        .add_lobe(rot360 + intake_lobe_center + rot360 + aoffset + boffset + rot120)
-        .add_lobe(rot360 + intake_lobe_center + rot360 + aoffset + boffset + rot240)
+        .add_lobe(rot360 + intake_lobe_center + rot360 + aoffset + boffset + rot180)
 
     _exhaust_cam_3
         .add_lobe(rot360 - exhaust_lobe_center + rot180 + rot360 + aoffset)
-        .add_lobe(rot360 - exhaust_lobe_center + rot180 + rot360 + aoffset + rot120)
-        .add_lobe(rot360 - exhaust_lobe_center + rot180 + rot360 + aoffset + rot240)
+        .add_lobe(rot360 - exhaust_lobe_center + rot180 + rot360 + aoffset + rot180)
     _intake_cam_3
         .add_lobe(rot360 + intake_lobe_center + rot180 + rot360 + aoffset)
-        .add_lobe(rot360 + intake_lobe_center + rot180 + rot360 + aoffset + rot120)
-        .add_lobe(rot360 + intake_lobe_center + rot180 + rot360 + aoffset + rot240)
+        .add_lobe(rot360 + intake_lobe_center + rot180 + rot360 + aoffset + rot180)
 }
 
 fuel nitromethane(
@@ -279,14 +267,13 @@ public node subaru_ej25 {
 
     engine engine(
         name: "Subaru EJ25 but Weird",
-        starter_torque: 700000 * units.lb_ft,
+        starter_torque: 700 * units.lb_ft,
         starter_speed: 500 * units.rpm,
-        redline: 20000 * units.rpm,
+        redline: 7000 * units.rpm,
         throttle_gamma: 2.0,
         hf_gain: 0.01,
         noise: 1.0,
         jitter: 0.5,
-        fuel: nitromethane,
         simulation_frequency: 9000
     )
 
@@ -324,12 +311,10 @@ public node subaru_ej25 {
     )
 
     rod_journal rj0(angle: 0.0 * units.deg)
-    rod_journal rj1(angle: 120.0 * units.deg)
-    rod_journal rj2(angle: 240.0 * units.deg)
+    rod_journal rj1(angle: 180.0 * units.deg)
     c0
         .add_rod_journal(rj0)
         .add_rod_journal(rj1)
-        .add_rod_journal(rj2)
 
     piston_parameters piston_params(
         mass: (414 + 152) * units.g, // 414 - piston mass, 152 - pin weight
@@ -355,7 +340,7 @@ public node subaru_ej25 {
         runner_flow_rate: k_carb(1500.0),
         runner_length: 12.0 * units.inch,
         idle_flow_rate: k_carb(0.0),
-        idle_throttle_plate_position: 0.99991,
+        idle_throttle_plate_position: 0.998,
         velocity_decay: 0.4
     )
 
@@ -412,16 +397,6 @@ public node subaru_ej25 {
             primary_length: 0 * units.inch,
             sound_attenuation: 0.9
         )
-        .add_cylinder(
-            piston: piston(piston_params, blowby: k_28inH2O(0.001)),
-            connecting_rod: connecting_rod(cr_params),
-            rod_journal: rj2,
-            intake: intake,
-            exhaust_system: exhaust0,
-            ignition_wire: wires.wire9,
-            primary_length: 0 * units.inch,
-            sound_attenuation: 0.9
-        )
         .set_cylinder_head(
             ej25_head(
                 flip_display: false,
@@ -446,16 +421,6 @@ public node subaru_ej25 {
             intake: intake,
             exhaust_system: exhaust0,
             ignition_wire: wires.wire7,
-            primary_length: 0 * units.inch,
-            sound_attenuation: 1.0
-        )
-        .add_cylinder(
-            piston: piston(piston_params, blowby: k_28inH2O(0.002)),
-            connecting_rod: connecting_rod(cr_params),
-            rod_journal: rj2,
-            intake: intake,
-            exhaust_system: exhaust0,
-            ignition_wire: wires.wire11,
             primary_length: 0 * units.inch,
             sound_attenuation: 1.0
         )
@@ -486,16 +451,6 @@ public node subaru_ej25 {
             primary_length: 0 * units.inch,
             sound_attenuation: 1.1
         )
-        .add_cylinder(
-            piston: piston(piston_params, blowby: k_28inH2O(0.001)),
-            connecting_rod: connecting_rod(cr_params),
-            rod_journal: rj2,
-            intake: intake,
-            exhaust_system: exhaust0,
-            ignition_wire: wires.wire10,
-            primary_length: 0 * units.inch,
-            sound_attenuation: 1.1
-        )
         .set_cylinder_head(
             ej25_head(
                 flip_display: true,
@@ -520,16 +475,6 @@ public node subaru_ej25 {
             intake: intake,
             exhaust_system: exhaust0,
             ignition_wire: wires.wire8,
-            primary_length: 0 * units.inch,
-            sound_attenuation: 0.9
-        )
-        .add_cylinder(
-            piston: piston(piston_params, blowby: k_28inH2O(0.002)),
-            connecting_rod: connecting_rod(cr_params),
-            rod_journal: rj2,
-            intake: intake,
-            exhaust_system: exhaust0,
-            ignition_wire: wires.wire12,
             primary_length: 0 * units.inch,
             sound_attenuation: 0.9
         )
@@ -596,7 +541,7 @@ public node subaru_ej25 {
 
     ignition_module ignition_module(
         timing_curve: timing_curve,
-        rev_limit: 20000 * units.rpm,
+        rev_limit: 7000 * units.rpm,
         limiter_duration: 0.16)
     ignition_module
             .connect_wire(wires.wire1, (0.0 / 8.0) * cycle)
@@ -604,15 +549,10 @@ public node subaru_ej25 {
             .connect_wire(wires.wire2, (4.0 / 8.0) * cycle + 0.25 * 45 * units.deg)
             .connect_wire(wires.wire4, (6.0 / 8.0) * cycle)
 
-            .connect_wire(wires.wire5, (0.0 / 8.0) * cycle + 120 * units.deg)
-            .connect_wire(wires.wire7, (2.0 / 8.0) * cycle + 0.25 * 45 * units.deg + 120 * units.deg)
-            .connect_wire(wires.wire6, (4.0 / 8.0) * cycle + 0.25 * 45 * units.deg + 120 * units.deg)
-            .connect_wire(wires.wire8, (6.0 / 8.0) * cycle + 120 * units.deg)
-
-            .connect_wire(wires.wire9, (0.0 / 8.0) * cycle + 240 * units.deg)
-            .connect_wire(wires.wire11, (2.0 / 8.0) * cycle + 0.25 * 45 * units.deg + 240 * units.deg)
-            .connect_wire(wires.wire10, (4.0 / 8.0) * cycle + 0.25 * 45 * units.deg + 240 * units.deg)
-            .connect_wire(wires.wire12, (6.0 / 8.0) * cycle + 240 * units.deg)
+            .connect_wire(wires.wire5, (0.0 / 8.0) * cycle + 180 * units.deg)
+            .connect_wire(wires.wire7, (2.0 / 8.0) * cycle + 0.25 * 45 * units.deg + 180 * units.deg)
+            .connect_wire(wires.wire6, (4.0 / 8.0) * cycle + 0.25 * 45 * units.deg + 180 * units.deg)
+            .connect_wire(wires.wire8, (6.0 / 8.0) * cycle + 180 * units.deg)
 
 
     engine.add_ignition_module(ignition_module)
@@ -635,7 +575,7 @@ private node impreza {
 private node impreza_transmission {
     alias output __out:
         transmission(
-            max_clutch_torque: 300000000 * units.lb_ft
+            max_clutch_torque: 2000 * units.Nm
         )
         .add_gear(3.636)
         .add_gear(2.375)

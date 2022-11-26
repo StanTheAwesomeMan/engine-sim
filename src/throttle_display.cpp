@@ -32,7 +32,8 @@ void ThrottleDisplay::render() {
 
     const Bounds bounds = m_bounds.inset(10.0f);
     const Bounds title = bounds.verticalSplit(1.0f, 0.9f);
-    drawCenteredText("THROTTLE", title.inset(10.0f), 24.0f);
+    drawCenteredText("THROTTLE:", title.inset(10.0f), 24.0f);
+    drawCenteredText(std::to_string((int)(round(m_engine->getSpeedControl() * 1000.0f) / 10.0f)) + "%", title.inset(30.0f), 24.0f);
 
     const Bounds mainDrawArea = bounds.verticalSplit(0.05f, 0.9f);
     renderThrottle(mainDrawArea);

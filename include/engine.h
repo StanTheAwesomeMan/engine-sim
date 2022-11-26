@@ -74,6 +74,8 @@ class Engine : public Part {
         inline double getStarterTorque() const { return m_starterTorque; }
         inline double getStarterSpeed() const { return m_starterSpeed; }
         inline double getRedline() const { return m_redline; }
+        inline double getRpmLift() { return setrpmlift; }
+        inline void setRpmLift(double i) { setrpmlift = i; }
 
         int getCylinderBankCount() const { return m_cylinderBankCount; }
         int getCylinderCount() const { return m_cylinderCount; }
@@ -135,6 +137,8 @@ class Engine : public Part {
 
         double m_throttleValue;
         double m_displacement;
+
+        double setrpmlift;
 };
 
 #endif /* ATG_ENGINE_SIM_ENGINE_H */

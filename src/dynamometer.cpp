@@ -8,7 +8,7 @@ Dynamometer::Dynamometer() : atg_scs::Constraint(1, 1) {
     m_rotationSpeed = 0.0;
     m_ks = 10.0;
     m_kd = 1.0;
-    m_maxTorque = units::torque(10000.0, units::ft_lb);
+    m_maxTorque = units::torque(10000000.0, units::ft_lb);
 
     m_enabled = false;
     m_hold = false;

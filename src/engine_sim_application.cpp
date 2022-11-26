@@ -13,6 +13,9 @@
 #include "../include/exhaust_system.h"
 #include "../include/feedback_comb_filter.h"
 #include "../include/utilities.h"
+#include "../include/ignition_module.h"
+#include "../include/ui_utilities.h"
+#include "../include/crankshaft.h"
 
 #include "../scripting/include/compiler.h"
 
@@ -24,7 +27,18 @@
 #include "../discord/Discord.h"
 #endif
 
+Crankshaft* m_acrankshaft;
+
 std::string EngineSimApplication::s_buildVersion = "0.1.11a";
+
+float nmap(float x, float in_min, float in_max, float out_min, float out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+bool loaded = false;
+
+ysVector green, yellow, orange, red, bg;
+ysVector mixedcolor;
 
 EngineSimApplication::EngineSimApplication() {
     m_assetPath = "";
@@ -200,20 +214,23 @@ void EngineSimApplication::process(float frame_dt) {
     frame_dt = static_cast<float>(clamp(frame_dt, 1 / 200.0f, 1 / 30.0f));
 
     double speed = 1.0 / 1.0;
-    if (m_engine.IsKeyDown(ysKey::Code::N1)) {
+    if (m_engine.IsKeyDown(ysKey::Code::Y)) {
         speed = 1 / 10.0;
     }
-    else if (m_engine.IsKeyDown(ysKey::Code::N2)) {
+    else if (m_engine.IsKeyDown(ysKey::Code::U)) {
         speed = 1 / 100.0;
     }
-    else if (m_engine.IsKeyDown(ysKey::Code::N3)) {
+    else if (m_engine.IsKeyDown(ysKey::Code::I)) {
         speed = 1 / 200.0;
     }
-    else if (m_engine.IsKeyDown(ysKey::Code::N4)) {
+    else if (m_engine.IsKeyDown(ysKey::Code::O)) {
         speed = 1 / 500.0;
     }
-    else if (m_engine.IsKeyDown(ysKey::Code::N5)) {
+    else if (m_engine.IsKeyDown(ysKey::Code::P)) {
         speed = 1 / 1000.0;
+    }
+    else if (m_engine.IsKeyDown(ysKey::Code::K)) {
+        speed = 2 / 1.0;
     }
 
     m_simulator.setSimulationSpeed(speed);
@@ -766,10 +783,10 @@ void EngineSimApplication::processEngineInput() {
         m_targetSpeedSetting = 0.01;
     }
     else if (m_engine.IsKeyDown(ysKey::Code::W)) {
-        m_targetSpeedSetting = 0.1;
+        m_targetSpeedSetting = 0.05;
     }
     else if (m_engine.IsKeyDown(ysKey::Code::E)) {
-        m_targetSpeedSetting = 0.2;
+        m_targetSpeedSetting = 0.1;
     }
     else if (m_engine.IsKeyDown(ysKey::Code::R)) {
         m_targetSpeedSetting = 1.0;
@@ -779,10 +796,10 @@ void EngineSimApplication::processEngineInput() {
     }
 
     if (prevTargetThrottle != m_targetSpeedSetting) {
-        m_infoCluster->setLogMessage("Speed control set to " + std::to_string(m_targetSpeedSetting));
+        m_infoCluster->setLogMessage("Speed control set to " + std::to_string((int)(round(m_targetSpeedSetting * 1000.0f) / 10.0f)) + "%");
     }
 
-    m_speedSetting = m_targetSpeedSetting * 0.5 + 0.5 * m_speedSetting;
+    m_speedSetting = m_targetSpeedSetting * 0.2 + 0.8 * m_speedSetting;
 
     m_iceEngine->setSpeedControl(m_speedSetting);
     if (m_engine.ProcessKeyDown(ysKey::Code::M)) {
@@ -895,7 +912,7 @@ void EngineSimApplication::processEngineInput() {
         m_targetClutchPressure = 0.0;
         m_infoCluster->setLogMessage("CLUTCH DEPRESSED");
     }
-    else if (!m_engine.IsKeyDown(ysKey::Code::Y)) {
+    else if (!m_engine.IsKeyDown(ysKey::Code::Z)) {
         m_targetClutchPressure = 1.0;
     }
 
@@ -909,6 +926,37 @@ void EngineSimApplication::processEngineInput() {
     const double clutch_s = dt / (dt + clutchRC);
     m_clutchPressure = m_clutchPressure * (1 - clutch_s) + m_targetClutchPressure * clutch_s;
     m_simulator.getTransmission()->setClutchPressure(m_clutchPressure);
+
+    float curRPM = m_iceEngine->getRpm();
+    float redline = units::toRpm( m_iceEngine->getRedline() );
+
+    float mapped = nmap(curRPM, 1000, redline, 0.0f, 100.0f);
+    
+    if (!loaded) {
+        green = ysColor::srgbiToLinear(m_applicationSettings.colorGreen);
+        yellow = ysColor::srgbiToLinear(m_applicationSettings.colorYellow);
+        orange = ysColor::srgbiToLinear(m_applicationSettings.colorOrange);
+        red = ysColor::srgbiToLinear(m_applicationSettings.colorRed);
+        bg = ysColor::srgbiToLinear(0xFF0000);
+
+        loaded = true;
+    }
+
+    if(mapped < 40) {
+        mapped = clamp(nmap(mapped, 0.0f, 40.0f, 0.0f, 1.0f));
+        mixedcolor = mix(green, yellow, mapped);
+    } else if (mapped < 70 && mapped > 40) {
+        mapped = clamp(nmap(mapped, 40.0f, 70.0f, 0.0f, 1.0f));
+        mixedcolor = mix(yellow, orange, mapped);
+    } else if (mapped < 100 && mapped > 70) {
+        mapped = clamp(nmap(mapped, 70.0f, 100.0f, 0.0f, 1.0f));
+        mixedcolor = mix(orange, red, mapped);
+    } else {
+        mapped = clamp(nmap(mapped, 100.0f, 140.0f, 0.0f, 1.0f));
+        mixedcolor = mix(red, bg, mapped);
+    }
+
+    m_highlight2 = mixedcolor;
 }
 
 void EngineSimApplication::renderScene() {

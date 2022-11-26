@@ -6,6 +6,7 @@
 #include "simulator.h"
 #include "oscilloscope.h"
 
+
 class OscilloscopeCluster : public UiElement {
     private:
         static constexpr int MaxLayeredScopes = 5;
@@ -35,6 +36,7 @@ class OscilloscopeCluster : public UiElement {
         Oscilloscope *getCylinderMoleculesScope() const { return m_cylinderMoleculesScope; }
         Oscilloscope *getPvScope() const { return m_pvScope; }
         void setDynoMaxRange(double redline) { m_torqueScope->m_xMax = redline + 500; m_powerScope->m_xMax = redline + 500; }
+        void renderThing(const Bounds &bounds, float f);
 
     protected:
         void renderScope(

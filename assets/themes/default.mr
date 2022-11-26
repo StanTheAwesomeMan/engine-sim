@@ -26,6 +26,6 @@ public node use_default_theme {
         color_orange: 0xF4802A,
         color_yellow: 0xFDBD2E,
         color_blue: 0x77CEE0,
-        color_green: 0xBDD869
+        color_green: 0xA6D850
     )
 }

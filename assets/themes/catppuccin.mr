@@ -1,0 +1,53 @@
+import "engine_sim.mr"
+
+// Colors
+label Rosewater(0xf5e0dc)
+label Flamingo(0xf2cdcd)
+label Pink(0xf5c2e7)
+label Mauve(0xcba6f7)
+label Red(0xf38ba8)
+label Maroon(0xeba0ac)
+label Peach(0xfab387)
+label Yellow(0xf9e2af)
+label Green(0xa6e3a1)
+label Teal(0x94e2d5)
+label Sky(0x89dceb)
+label Sapphire(0x74c7ec)
+label Blue(0x89b4fa)
+label Lavender(0xb4befe)
+
+// B/W
+label Text(0xcdd6f4) // White
+label Base(0x1e1e2e) // Light Black
+label Mantle(0x181825) // Medium Black
+label Crust(0x11111b) // Dark Black
+
+unit_names units()
+public node use_catppuccin_theme {
+    input start_fullscreen: false;
+    input speed_units: units.kph;
+    input pressure_units: units.inHg;
+    input torque_units: units.Nm;
+    input power_units: units.hp;
+
+    set_application_settings(
+        start_fullscreen: start_fullscreen,
+        speed_units: speed_units,
+        pressure_units: pressure_units,
+        torque_units: torque_units,
+        power_units: power_units,
+        
+        // Color Settings
+        color_background: Crust,
+        color_foreground: Text,
+        color_shadow: Crust,
+        color_highlight1: Red,
+        color_highlight2: Text,
+        color_pink: Pink,
+        color_red: Red,
+        color_orange: Peach,
+        color_yellow: Yellow,
+        color_blue: Blue,
+        color_green: Teal
+    )
+}

@@ -2,7 +2,19 @@
 
 #include "../include/engine_sim_application.h"
 
+#include "../include/ui_utilities.h"
+
 #include <sstream>
+
+ysVector agreen, ayellow, aorange, ared;
+ysVector amixedcolor;
+float flowmax, flowavg;
+
+bool aloaded = false;
+
+float nmmap(float x, float in_min, float in_max, float out_min, float out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
 
 OscilloscopeCluster::OscilloscopeCluster() {
     m_simulator = nullptr;
@@ -287,6 +299,9 @@ void OscilloscopeCluster::render() {
     const Bounds &totalExhaustPressureBounds = grid.get(m_bounds, 1, 2);
     renderScope(m_totalExhaustFlowScope, totalExhaustPressureBounds, "Total Exhaust Flow");
 
+    const Bounds mainDrawArea = grid.get(m_bounds, 3, 2);
+    renderThing(mainDrawArea, 0);
+
     const Bounds &focusBounds = grid.get(m_bounds, 0, 0, 3, 2);
     Bounds focusTitle = focusBounds;
     focusTitle.m0.y = focusTitle.m1.y - (24.0f + 15.0f);
@@ -320,7 +335,7 @@ void OscilloscopeCluster::sample() {
         }
 
         getTotalExhaustFlowOscilloscope()->addDataPoint(
-            cycleAngle,
+            cycleAngle * 0.97,
             m_simulator->getTotalExhaustFlow() / m_simulator->getTimestep());
         getCylinderPressureScope()->addDataPoint(
             engine->getCrankshaft(0)->getCycleAngle(constants::pi),
@@ -359,6 +374,67 @@ void OscilloscopeCluster::sample() {
 
     m_powerScope->m_xMax = m_torqueScope->m_xMax =
         std::fmax(m_powerScope->m_xMax, units::toRpm(engine->getSpeed()));
+
+    float flowex = m_simulator->getTotalExhaustFlow() / m_simulator->getTimestep();
+    flowavg = flowex * 0.004f + flowavg * 0.996f;
+
+    float mapped = nmmap(flowavg, 0.0f, m_totalExhaustFlowScope->m_yMax / 1.85f, 0.0f, 100.0f);
+    mapped = clamp(mapped, 0.0f, 100.0f);
+
+    if (!aloaded) {
+        agreen = ysColor::srgbiToLinear(m_app->getAppSettings()->colorGreen);
+        ayellow = ysColor::srgbiToLinear(m_app->getAppSettings()->colorYellow);
+        aorange = ysColor::srgbiToLinear(m_app->getAppSettings()->colorOrange);
+        ared = ysColor::srgbiToLinear(m_app->getAppSettings()->colorRed);
+
+        aloaded = true;
+    }
+
+    if(mapped < 50) {
+        mapped = clamp(nmmap(mapped, 0.0f, 50.0f, 0.0f, 1.0f));
+        amixedcolor = mix(ayellow, aorange, mapped);
+    } else {
+        mapped = clamp(nmmap(mapped, 50.0f, 100.0f, 0.0f, 1.0f));
+        amixedcolor = mix(aorange, ared, mapped);
+    }
+
+    m_totalExhaustFlowScope->i_color = amixedcolor;
+    
+}
+
+void OscilloscopeCluster::renderThing(const Bounds &bounds, float f) {
+    GeometryGenerator *gen = m_app->getGeometryGenerator();
+
+    Grid grid;
+    grid.v_cells = 1;
+    grid.h_cells = 3;
+    const Bounds b = grid.get(bounds, -3, 0);
+
+    Point lm = b.getPosition(Bounds::lm);
+    Point rm = b.getPosition(Bounds::rm);
+
+    const float mult = 1.85f;
+    const float width = 5.0f;
+
+    lm.x = lm.x - (2 + width);
+    lm.y = lm.y - 66;
+
+    const float s = clamp(nmmap(flowavg, 0.0f, m_totalExhaustFlowScope->m_yMax / mult, 0.0f, 1.0f));
+
+    const Bounds bar = Bounds(width, b.width() * mult, lm, 0);
+    const Bounds speedControlBar = Bounds(width, b.width() * s * mult, lm, 0);
+
+    drawFrame(
+        bar,
+        1.0f,
+        mix(m_app->getBackgroundColor(), m_app->getForegroundColor(), 0.001f),
+        mix(m_app->getBackgroundColor(), m_app->getRed(), 0.01f)
+    );
+
+    drawBox(
+        speedControlBar,
+        m_app->getRed()
+    );
 }
 
 void OscilloscopeCluster::setSimulator(Simulator *simulator) {

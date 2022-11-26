@@ -63,13 +63,7 @@ void RightGaugeCluster::initialize(EngineSimApplication *app) {
     m_tachometer->m_gauge->m_gamma = 1.0f;
     m_tachometer->m_gauge->m_needleKs = 1000.0f;
     m_tachometer->m_gauge->m_needleKd = 20.0f;
-    m_tachometer->m_gauge->setBandCount(3);
-    m_tachometer->m_gauge->setBand(
-        { m_app->getForegroundColor(), 400, 1000, 3.0f, 6.0f }, 0);
-    m_tachometer->m_gauge->setBand(
-        { m_app->getOrange(), 5000, 5500, 3.0f, 6.0f, -shortenAngle, shortenAngle }, 1);
-    m_tachometer->m_gauge->setBand(
-        { m_app->getRed(), 5500, 7000, 3.0f, 6.0f, shortenAngle, -shortenAngle }, 2);
+    m_tachometer->m_gauge->setBandCount(0);
 
     m_speedometer->m_title = "VEHICLE SPEED";
     m_speedometer->m_unit = "MPH";
@@ -200,19 +194,11 @@ void RightGaugeCluster::renderTachSpeedCluster(const Bounds &bounds) {
 
     constexpr float shortenAngle = (float)units::angle(1.0, units::deg);
     const float maxRpm =
-        (float)std::ceil(units::toRpm(getRedline() * 1.25) / 1000.0) * 1000.0f;
-    const float redline =
-        (float)std::ceil(units::toRpm(getRedline()) / 500.0) * 500.0f;
-    const float redlineWarning =
-        (float)std::floor(units::toRpm(getRedline() * 0.9) / 500.0) * 500.0f;
+        (float) units::toRpm(getRedline()) + 1000.0f;
     m_tachometer->m_gauge->m_max = (int)maxRpm;
-    m_tachometer->m_gauge->setBandCount(3);
+    m_tachometer->m_gauge->setBandCount(1);
     m_tachometer->m_gauge->setBand(
-        { m_app->getForegroundColor(), 400, 1000, 3.0f, 6.0f }, 0);
-    m_tachometer->m_gauge->setBand(
-        { m_app->getOrange(), redlineWarning, redline, 3.0f, 6.0f, -shortenAngle, shortenAngle }, 1);
-    m_tachometer->m_gauge->setBand(
-        { m_app->getRed(), redline, maxRpm, 3.0f, 6.0f, shortenAngle, -shortenAngle }, 2);
+        { m_app->getHightlight2Color(), 0, maxRpm, 3.0f, 6.0f, 0, 0 }, 0);
 
     const Bounds speed = left.verticalSplit(0.0f, 0.5f);
     m_speedometer->m_bounds = speed;
@@ -247,14 +233,7 @@ void RightGaugeCluster::renderFuelAirCluster(const Bounds &bounds) {
     m_manifoldVacuumGauge->m_bounds = manifoldVacuum;
 
     const double vacuumReading = getManifoldPressureWithUnits(ambientPressure);
-    if (m_isAbsolute) {
-        m_manifoldVacuumGauge->m_gauge->m_value = static_cast<float>(vacuumReading);
-    }
-    else {
-        m_manifoldVacuumGauge->m_gauge->m_value = (vacuumReading > -0.5)
-            ? 0.0f
-            : static_cast<float>(vacuumReading);
-    }
+    m_manifoldVacuumGauge->m_gauge->m_value = static_cast<float>(vacuumReading);
 
     const double rpm = std::fmax(getRpm(), 0.0);
     const double theoreticalAirPerRevolution = (m_engine == nullptr)
@@ -281,7 +260,7 @@ void RightGaugeCluster::renderFuelAirCluster(const Bounds &bounds) {
 
 double RightGaugeCluster::getManifoldPressureWithUnits(double ambientPressure) {
     if (m_pressureUnits == "inHg") {
-        return units::convert(std::fmin(getManifoldPressure() - ambientPressure, 0.0), units::inHg);
+        return units::convert(getManifoldPressure() - ambientPressure, units::inHg);
     }
     else if (m_pressureUnits == "kPa") {
         return units::convert(getManifoldPressure(), units::kPa);
@@ -296,7 +275,7 @@ double RightGaugeCluster::getManifoldPressureWithUnits(double ambientPressure) {
         return units::convert(std::fmin(getManifoldPressure() - ambientPressure, 0.0), units::psi);
     }
     else {
-        return units::convert(std::fmin(getManifoldPressure() - ambientPressure, 0.0), units::inHg);
+        return units::convert(getManifoldPressure() - ambientPressure, units::inHg);
     }
 }
 
@@ -374,7 +353,7 @@ void RightGaugeCluster::setUnits() {
 
         m_manifoldVacuumGauge->m_unit = "bar";
         m_manifoldVacuumGauge->m_gauge->m_min = 0;
-        m_manifoldVacuumGauge->m_gauge->m_max = 1.1f;
+        m_manifoldVacuumGauge->m_gauge->m_max = 1;
         m_manifoldVacuumGauge->m_gauge->m_minorStep = 1;
         m_manifoldVacuumGauge->m_gauge->m_majorStep = 1;
         m_manifoldVacuumGauge->m_precision = 2;

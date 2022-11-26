@@ -69,6 +69,7 @@ class EngineSimApplication {
         ysVector getBackgroundColor() const { return m_background; }
         ysVector getForegroundColor() const { return m_foreground; }
         ysVector getHightlight1Color() const { return m_highlight1; }
+        ysVector getHightlight2Color() const {return m_highlight2; }
         ysVector getPink() const { return m_pink; }
         ysVector getGreen() const { return m_green; }
         ysVector getYellow() const { return m_yellow; }

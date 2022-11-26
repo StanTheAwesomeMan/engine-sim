@@ -2,6 +2,7 @@
 #define ATG_ENGINE_SIM_STANDARD_VALVETRAIN_H
 
 #include "valvetrain.h"
+#include "../include/engine_sim_application.h"
 
 class StandardValvetrain : public Valvetrain {
 public:
@@ -25,6 +26,7 @@ public:
 private:
     Camshaft *m_intakeCamshaft;
     Camshaft *m_exhaustCamshaft;
+    Engine *m_engine;
 };
 
 #endif /* ATG_ENGINE_SIM_STANDARD_VALVETRAIN_H */

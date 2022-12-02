@@ -846,7 +846,7 @@ void EngineSimApplication::processEngineInput() {
                 m_dynoSpeed *= (1 / (1 + dt));
             }
 
-            if ((m_dynoSpeed + units::rpm(1000)) > m_iceEngine->getRedline()) {
+            if ((m_dynoSpeed + units::rpm(600)) > m_iceEngine->getRedline()) {
                 m_simulator.m_dyno.m_enabled = false;
                 m_dynoSpeed = units::rpm(0);
             }
@@ -858,7 +858,7 @@ void EngineSimApplication::processEngineInput() {
         }
     }
 
-    m_simulator.m_dyno.m_rotationSpeed = m_dynoSpeed + units::rpm(1000);
+    m_simulator.m_dyno.m_rotationSpeed = m_dynoSpeed + units::rpm(600);
 
     const bool prevStarterEnabled = m_simulator.m_starterMotor.m_enabled;
     if (m_engine.IsKeyDown(ysKey::Code::S)) {

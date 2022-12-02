@@ -358,7 +358,7 @@ public node subaru_ej25 {
         es_params,
         length: 500 * units.mm,
         audio_volume: 1.0 * 0.02,
-        impulse_response: ir0
+        impulse_response: ir_lib.minimal_muffling_02
     )
 
     cylinder_bank_parameters bank_params(
